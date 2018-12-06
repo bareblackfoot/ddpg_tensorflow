@@ -141,6 +141,10 @@ class TorcsEnv:
         if obs['damage'] - obs_pre['damage'] > 0:
             reward = -1
 
+
+
+
+
         # Termination judgement #########################
         episode_terminate = False
         #if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
