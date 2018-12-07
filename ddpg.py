@@ -18,30 +18,27 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
     BATCH_SIZE = 32
     GAMMA = 0.99
     TAU = 0.001     #Target Network HyperParameters
-    LRA = 0.0001    #Learning rate for Actor
-    LRC = 0.001     #Lerning rate for Critic
+    LRA = 0.00005    #Learning rate for Actor
+    LRC = 0.0005     #Lerning rate for Critic
 
     action_dim = 3  #Steering/Acceleration/Brake
     state_dim = 29  #of sensors input
 
-    # np.random.seed(1337)
+    np.random.seed(1337)
 
     vision = False
 
-    EXPLORE = 100000.
+    EXPLORE = 200000.
     if train_indicator:
-        episode_count = 500
+        episode_count = 10000
     else:
         episode_count = 20
     max_steps = 4000
-    reward = 0
-    done = False
     step = 0
     if train_indicator:
         epsilon = 1
     else:
         epsilon = 0
-    indicator = 0
     max_reward = -10000000
 
     #Tensorflow GPU optimization
@@ -67,6 +64,10 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
+
+
+
+
 
     print("TORCS Experiment Start.")
     for i in range(episode_count):
