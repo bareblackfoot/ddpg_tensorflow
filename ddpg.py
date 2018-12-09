@@ -30,7 +30,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
 
     EXPLORE = 200000.
     if train_indicator:
-        episode_count = 10000
+        episode_count = 1000
     else:
         episode_count = 20
     max_steps = 4000
@@ -39,7 +39,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
         epsilon = 1
     else:
         epsilon = 0
-    max_reward = -10000000
+    min_laptime = 10000000
 
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
@@ -64,11 +64,6 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
         print("Successfully loaded:", checkpoint.model_checkpoint_path)
     else:
         print("Could not find old network weights")
-
-
-
-
-
     print("TORCS Experiment Start.")
     for i in range(episode_count):
 
@@ -82,6 +77,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
         s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
      
         total_reward = 0.
+        # totalLaptime = 0.
         for j in range(max_steps):
             loss = 0
             if train_indicator:
@@ -104,7 +100,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
             a_t[0][1] = a_t_original[0][1] + noise_t[0][1]
             a_t[0][2] = a_t_original[0][2] + noise_t[0][2]
 
-            ob, r_t, done, info = env.step(a_t[0])
+            ob, r_t, done, info = env.step(a_t[0], train_indicator)
 
             s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
         
@@ -139,7 +135,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
             s_t = s_t1
 
             if np.mod(step, 100) == 0:
-                print("Episode", i, "Step", step, "Epsilon", epsilon, "Action", a_t, "Reward", r_t, "Loss", loss)
+                print("Episode", i, "Step", step, "Epsilon", epsilon, "Action", a_t, "Reward", r_t, "Loss", loss) #, "curLapTime", ob.curLapTime)
         
             step += 1
             if i == 0:
@@ -149,8 +145,8 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
 
         # if np.mod(i, 3) == 0:
         if (train_indicator) and i > 0:
-            if total_reward > max_reward:
-                max_reward = total_reward
+            if env.lapTime < min_laptime and env.num_lap == 10:
+                min_laptime = env.lapTime
                 print("Now we save model")
                 saver.save(sess, 'saved_networks/' + 'network' + '-ddpg-{}'.format(i))
 

@@ -10,3 +10,4 @@ __pycache__/
 gym_torcs.pyc
 saved_networks/
 snakeoil3_gym.pyc
+best/

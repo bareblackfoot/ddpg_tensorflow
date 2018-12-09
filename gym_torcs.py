@@ -21,6 +21,8 @@ class TorcsEnv:
         self.vision = vision
         self.throttle = throttle
         self.gear_change = gear_change
+        self.lapTime = 0
+        self.num_lap = 1
 
         self.initial_run = True
 
@@ -120,6 +122,16 @@ class TorcsEnv:
         # Get the response of TORCS
         client.get_servers_input()
 
+        is_over = False
+        if not client.so:
+            self.lapTime += client.S.d['curLapTime']
+            is_over = True
+
+        if client.S.d['curLapTime'] < obs_pre['curLapTime']:
+            self.lapTime += client.S.d['lastLapTime']
+            self.num_lap += 1
+            print('*** Start lap [{}/10] '.format(self.num_lap))
+            print('*** Current total laptime: {} sec'.format(self.lapTime))
         # Get the current full-observation from torcs
         obs = client.S.d
 
@@ -128,13 +140,7 @@ class TorcsEnv:
 
         # Reward setting Here #######################################
         # direction-dependent positive reward
-        track = np.array(obs['track'])
-        trackPos = np.array(obs['trackPos'])
-
         sp = np.array(obs['speedX'])
-        damage = np.array(obs['damage'])
-        rpm = np.array(obs['rpm'])
-
         progress = sp*np.cos(obs['angle']) - np.abs(sp*np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
         reward = progress
 
@@ -143,7 +149,6 @@ class TorcsEnv:
             reward = -1
 
         # Termination judgement #########################
-        episode_terminate = False
         #if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
         #    reward = -200
         #    episode_terminate = True
@@ -152,13 +157,15 @@ class TorcsEnv:
             if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
                if progress < self.termination_limit_progress:
                    print("No progress")
-                   episode_terminate = True
                    client.R.d['meta'] = True
 
             if np.cos(obs['angle']) < 0: # Episode is terminated if the agent runs backward
                 print("Running backward")
-                episode_terminate = True
                 client.R.d['meta'] = True
+
+        if is_over:
+            print('Race is over. Total lap time is {} sec'.format(self.lapTime))
+            client.R.d['meta'] = True
 
         if client.R.d['meta'] is True: # Send a reset signal
             self.initial_run = False
@@ -172,6 +179,9 @@ class TorcsEnv:
         #print("Reset")
 
         self.time_step = 0
+        self.lapTime = 0
+        self.num_lap = 1
+        print('*** Start lap [{}/10] '.format(self.num_lap))
 
         if self.initial_reset is not True:
             self.client.R.d['meta'] = True
@@ -248,13 +258,15 @@ class TorcsEnv:
                      'rpm',
                      'track', 
                      'trackPos',
-                     'wheelSpinVel']
+                     'wheelSpinVel',
+                     'curLapTime']
             Observation = col.namedtuple('Observaion', names)
             return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32)/200.,
                                speedX=np.array(raw_obs['speedX'], dtype=np.float32)/300.0,
                                speedY=np.array(raw_obs['speedY'], dtype=np.float32)/300.0,
                                speedZ=np.array(raw_obs['speedZ'], dtype=np.float32)/300.0,
                                angle=np.array(raw_obs['angle'], dtype=np.float32)/3.1416,
+                               curLapTime=np.array(raw_obs['curLapTime'], dtype=np.float32),
                                damage=np.array(raw_obs['damage'], dtype=np.float32),
                                opponents=np.array(raw_obs['opponents'], dtype=np.float32)/200.,
                                rpm=np.array(raw_obs['rpm'], dtype=np.float32)/10000,

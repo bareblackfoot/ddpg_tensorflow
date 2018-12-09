@@ -47,10 +47,10 @@ class CriticNetwork(object):
         with tf.variable_scope('critic'):
             with tf.variable_scope(name):
                 w1 = tf.layers.dense(S, HIDDEN1_UNITS, activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.xavier_initializer(), name="w1", trainable=trainable)
-                a1 = tf.layers.dense(A, HIDDEN1_UNITS,  kernel_initializer=tf.contrib.layers.xavier_initializer(), name="a1", trainable=trainable)
-                h1 = tf.layers.dense(w1, HIDDEN1_UNITS, kernel_initializer=tf.contrib.layers.xavier_initializer(), name="h1", trainable=trainable)
+                a1 = tf.layers.dense(A, HIDDEN2_UNITS,  kernel_initializer=tf.contrib.layers.xavier_initializer(), name="a1", trainable=trainable)
+                h1 = tf.layers.dense(w1, HIDDEN2_UNITS, kernel_initializer=tf.contrib.layers.xavier_initializer(), name="h1", trainable=trainable)
                 h2 = tf.concat([h1, a1], axis=-1)
-                h3 = tf.layers.dense(h2, HIDDEN1_UNITS, activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.xavier_initializer(), name="h3", trainable=trainable)
+                h3 = tf.layers.dense(h2, HIDDEN2_UNITS, activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.xavier_initializer(), name="h3", trainable=trainable)
                 V = tf.layers.dense(h3, action_dim, trainable=trainable)
         weights = [var for var in tf.global_variables() if "critic" in var.name and name in var.name]
         return S, V, A, weights

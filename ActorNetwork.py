@@ -45,7 +45,7 @@ class ActorNetwork(object):
         with tf.variable_scope('actor'):
             with tf.variable_scope(name):
                 h0 = tf.layers.dense(S, units=HIDDEN1_UNITS, activation=tf.nn.relu, kernel_initializer= tf.contrib.layers.xavier_initializer(),name="h0", trainable=trainable)
-                h1 = tf.layers.dense(h0, units=HIDDEN1_UNITS, activation=tf.nn.relu, kernel_initializer= tf.contrib.layers.xavier_initializer(), name="h1", trainable=trainable)
+                h1 = tf.layers.dense(h0, units=HIDDEN2_UNITS, activation=tf.nn.relu, kernel_initializer= tf.contrib.layers.xavier_initializer(), name="h1", trainable=trainable)
                 Steering = tf.layers.dense(h1, 1, activation=tf.tanh, kernel_initializer=tf.initializers.random_normal(), name="Steering", trainable=trainable)
                 Acceleration = tf.layers.dense(h1, 1, activation=tf.sigmoid, kernel_initializer=tf.initializers.random_normal(), name="Acceleration", trainable=trainable)
                 Brake = tf.layers.dense(h1, 1, activation=tf.sigmoid, kernel_initializer=tf.initializers.random_normal(), name="Brake", trainable=trainable)
